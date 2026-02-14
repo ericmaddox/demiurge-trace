@@ -17,6 +17,10 @@
   <a href="https://gwpy.github.io/"><img src="https://img.shields.io/badge/GW-GWpy-3498DB?style=flat-square" alt="GWpy"></a>
 </p>
 
+<p align="center">
+  <img src="assets/run-audit-main-screen.png" alt="Demiurge Trace Dashboard" width="900">
+</p>
+
 ---
 
 ## Table of Contents
@@ -187,9 +191,11 @@ Your default browser will open automatically once data pre-loading completes (~6
 
 ### Reading the Dashboard
 
-After clicking **▶ Run Audit**, the dashboard populates three tabs:
+After clicking **▶ Run Audit**, the dashboard populates eight tabs:
 
 #### Tab 1 — Ensemble Overview
+
+![Ensemble Overview](assets/ensemble.png)
 
 | Element | What it shows |
 |:---|:---|
@@ -200,14 +206,18 @@ After clicking **▶ Run Audit**, the dashboard populates three tabs:
 
 #### Tab 2 — Per-Pulsar Detail
 
+![Per-Pulsar Detail](assets/pre-pulsar.png)
+
 | Element | What it shows |
 |:---|:---|
 | **Grey dots** | Baseline residuals (outside the analysis window) in microseconds (µs). This is the pulsar's normal timing noise. |
 | **Purple dots** | Residuals *inside* the analysis window, highlighted for comparison against the baseline. |
-| **Title bar stats** | `σ` = how many standard deviations the window RMS deviates from the baseline RMS. `Window RMS` = root-mean-square of residuals inside the window. `Baseline RMS` = the same metric for all data outside the window. |
+| **Title bar stats** | `σ` = how many standard deviations the window RMS deviates from the baseline RMS. `p` = Monte Carlo p-value. `log₁₀(BF)` = Bayesian evidence ratio. |
 | **What to look for** | If σ ≈ 0, the window residuals are indistinguishable from normal noise — no artifact. If σ > 3, the window shows statistically significant excess timing variation that warrants investigation. |
 
 #### Tab 3 — Sliding Window Sweep
+
+![Sliding Window Sweep](assets/sliding-window.png)
 
 | Element | What it shows |
 |:---|:---|
@@ -216,17 +226,61 @@ After clicking **▶ Run Audit**, the dashboard populates three tabs:
 | **Yellow dashed line** | The 3σ threshold. Any spike above this line would be statistically significant. |
 | **What to look for** | If no pulsar's line spikes at offset = 0, the GW event time is not special — the residuals there are no different from any other random time in the dataset. A coordinated spike at offset = 0 across multiple pulsars would suggest a simulation artifact. |
 
-#### Tab 4 — Results Table
+#### Tab 4 — Sky Map
+
+![Sky Map](assets/sky-map.png)
+
+| Element | What it shows |
+|:---|:---|
+| **Scatter plot** | Each marker is a pulsar plotted by Right Ascension and Declination (celestial coordinates). |
+| **Marker size & color** | Scaled by the absolute σ deviation — larger/brighter markers indicate higher deviations. |
+| **What to look for** | A simulation artifact would appear as uniformly elevated markers across the entire sky. If only one region is elevated, it's more likely local noise or instrumental. |
+
+#### Tab 5 — Correlations
+
+![Correlations](assets/correlations.png)
+
+| Element | What it shows |
+|:---|:---|
+| **Heatmap** | Pairwise Pearson correlation coefficients between pulsar timing residuals within the analysis window. |
+| **Color scale** | Red = positive correlation, Blue = negative correlation, White = no correlation. |
+| **What to look for** | A coherent simulation artifact would produce strong positive correlations across all pulsar pairs (uniformly red). Real physics should show near-zero correlations for most pairs. |
+
+#### Tab 6 — Null Distribution
+
+![Null Distribution](assets/null-distribution.png)
+
+| Element | What it shows |
+|:---|:---|
+| **Histogram** | Distribution of ensemble σ values computed at 100 random GPS times (the null distribution). |
+| **Red vertical line** | The observed ensemble σ at the actual GW event time. |
+| **Green dashed line** | Mean of the null distribution. |
+| **What to look for** | If the observed σ (red line) falls well within the histogram, the GW event time is statistically unremarkable. If it falls far in the tail, the event time is anomalous. |
+
+#### Tab 7 — Hellings-Downs
+
+![Hellings-Downs Curve](assets/hellings-downs.png)
+
+| Element | What it shows |
+|:---|:---|
+| **Yellow dashed curve** | The theoretical Hellings-Downs curve — the expected cross-correlation pattern for a gravitational wave background. |
+| **Purple dots** | Measured cross-correlations between pulsar pairs plotted against their angular separation. |
+| **What to look for** | If the measured correlations follow the HD curve, it would indicate a genuine GW signal. Random scatter indicates noise. A simulation artifact would show correlations inconsistent with both the HD curve and pure noise. |
+
+#### Tab 8 — Results Table
+
+![Results Table](assets/results.png)
 
 | Column | Meaning |
 |:---|:---|
 | **Pulsar** | NANOGrav pulsar designation (J-name). |
-| **σ Deviation** | Number of standard deviations between window RMS and baseline RMS. Values near 0 = normal; > 3 = anomalous. |
-| **p-value** | Monte Carlo significance (10,000 permutation trials). The fraction of random residual shuffles that produce a sigma ≥ the observed value. Low p-values (< 0.05) suggest the deviation is unlikely due to chance. |
+| **σ** | Number of standard deviations between window RMS and baseline RMS. Values near 0 = normal; > 3 = anomalous. |
+| **p-value** | Monte Carlo significance (10,000 permutation trials). Low p-values (< 0.05) suggest the deviation is unlikely due to chance. |
+| **log₁₀(BF)** | Bayesian evidence ratio. Negative values favor the null hypothesis; positive values favor artifact detection. |
+| **Bayes Verdict** | Jeffreys' scale interpretation of the Bayes Factor (e.g., "Decisive evidence for NULL"). |
 | **Window RMS** | Root-mean-square of timing residuals inside the analysis window (seconds). |
 | **Baseline RMS** | Root-mean-square of residuals outside the window (seconds). |
 | **Artifact** | ✓ No = consistent with real physics. 🚨 YES = anomalous deviation detected. |
-| **Verdict banner** | Ensemble-level conclusion. "Universal Clock Stability Confirmed" means no coherent artifact was found across the pulsar array. |
 
 > **Interpreting results:** A σ near 0 across all pulsars confirms that the universe's natural clocks (pulsars) show no timing anomalies coincident with the gravitational wave event — consistent with real physics, not a simulation.
 
@@ -265,6 +319,7 @@ demiurge-trace/
 │   ├── pulsar_module.py     # PINT model loading & residual calculation
 │   ├── auditor.py           # Statistical audit engine (MC, Bayes, HD, etc.)
 │   └── visualizer.py        # Matplotlib plotting (single + ensemble)
+├── assets/                  # Dashboard screenshots for README
 ├── .github/workflows/ci.yml # GitHub Actions CI smoke test
 ├── data/
 │   └── real/                # NANOGrav .par/.tim files (generated by setup)
@@ -326,11 +381,10 @@ The analysis window is swept across the entire observation timeline at 200 evenl
 Contributions are welcome! Here are some areas where help is needed:
 
 - **Multi-event sweep** — Automate auditing across the full GWOSC catalog (~90 events)
-- **Null distribution test** — Audit at random GPS times to build a baseline sigma distribution
-- **Cross-correlation analysis** — Pairwise pulsar residual correlations (Hellings-Downs style)
-- **Sky map visualization** — Mollweide projection color-coded by sigma
 - **Multi-detector strain** — Add L1 (Livingston) and V1 (Virgo) alongside H1
 - **Additional PTA data** — EPTA, PPTA, and IPTA integration
+- **Dark/Light theme toggle** — User-selectable themes in the dashboard
+- **Progress indicator** — Visual progress bar for long-running Monte Carlo computations
 
 To contribute:
 
