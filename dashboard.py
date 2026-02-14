@@ -8,7 +8,7 @@ Launch with: python dashboard.py
 import os
 import sys
 import numpy as np
-from dash import Dash, html, dcc, callback, Input, Output, State, dash_table
+from dash import Dash, html, dcc, callback, Input, Output, State, dash_table, no_update
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import warnings
@@ -53,7 +53,10 @@ def load_strain(gw_time):
         return _STRAIN_CACHE[gw_time]
 
     from demiurge_trace import ligo_module
-    strain = ligo_module.fetch_strain_data(gw_time)
+    try:
+        strain = ligo_module.fetch_strain_data(gw_time)
+    except Exception:
+        strain = None
     _STRAIN_CACHE[gw_time] = strain
     return strain
 
@@ -88,8 +91,24 @@ PULSAR_COLORS = [
 ]
 
 
+def _empty_fig(message="Press ▶ Run Audit to begin."):
+    """Return an empty placeholder figure."""
+    fig = go.Figure()
+    fig.add_annotation(text=message, xref="paper", yref="paper", x=0.5, y=0.5,
+                       showarrow=False, font=dict(size=16, color=COLORS["text_dim"]))
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor=COLORS["bg"],
+        plot_bgcolor=COLORS["bg"],
+        height=500,
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+    )
+    return fig
+
+
 # ---------------------------------------------------------------------------
-# App layout
+# App layout — ALL IDs exist in initial render (no dynamic ID creation)
 # ---------------------------------------------------------------------------
 app = Dash(__name__)
 app.title = "Demiurge Trace — Simulation Hypothesis Auditor"
@@ -132,12 +151,15 @@ app.layout = html.Div(
                 ]),
                 html.Div(
                     id="status-badge",
+                    children="AWAITING AUDIT",
                     style={
                         "padding": "8px 20px",
                         "borderRadius": "20px",
                         "fontSize": "13px",
                         "fontWeight": "600",
                         "letterSpacing": "0.5px",
+                        "backgroundColor": "rgba(148,163,184,0.15)",
+                        "color": COLORS["text_dim"],
                     },
                 ),
             ],
@@ -220,6 +242,7 @@ app.layout = html.Div(
                                 "borderRadius": "12px",
                                 "padding": "20px",
                             },
+                            children=[html.P("Run an audit to see results.", style={"color": COLORS["text_dim"], "fontSize": "14px", "margin": "0"})],
                         ),
                     ],
                 ),
@@ -254,7 +277,69 @@ app.layout = html.Div(
                                 ),
                             ],
                         ),
-                        html.Div(id="tab-content"),
+
+                        # --- ALL tab content panels exist in DOM from the start ---
+
+                        # Tab 1: Ensemble
+                        html.Div(
+                            id="panel-ensemble",
+                            children=[dcc.Graph(id="ensemble-graph", figure=_empty_fig(), config={"displayModeBar": True, "scrollZoom": True}, style={"borderRadius": "12px", "overflow": "hidden"})],
+                        ),
+
+                        # Tab 2: Per-Pulsar
+                        html.Div(
+                            id="panel-pulsar",
+                            style={"display": "none"},
+                            children=[
+                                dcc.Dropdown(
+                                    id="pulsar-select",
+                                    options=[],
+                                    value=None,
+                                    clearable=False,
+                                    style={"backgroundColor": "#1e293b", "color": "#e2e8f0", "borderColor": "#334155", "borderRadius": "8px", "marginBottom": "20px", "maxWidth": "400px"},
+                                ),
+                                dcc.Graph(id="pulsar-graph", figure=_empty_fig("Select a pulsar above."), config={"displayModeBar": True, "scrollZoom": True}, style={"borderRadius": "12px", "overflow": "hidden"}),
+                            ],
+                        ),
+
+                        # Tab 3: Results Table
+                        html.Div(
+                            id="panel-table",
+                            style={"display": "none"},
+                            children=[
+                                dash_table.DataTable(
+                                    id="results-table",
+                                    data=[],
+                                    columns=[{"name": c, "id": c} for c in ["Pulsar", "σ Deviation", "Window RMS (s)", "Baseline RMS (s)", "Artifact"]],
+                                    style_table={"overflowX": "auto", "borderRadius": "12px"},
+                                    style_header={
+                                        "backgroundColor": COLORS["card"],
+                                        "color": COLORS["text"],
+                                        "fontWeight": "600",
+                                        "fontSize": "13px",
+                                        "textTransform": "uppercase",
+                                        "letterSpacing": "0.5px",
+                                        "border": f"1px solid {COLORS['card_border']}",
+                                        "padding": "12px 16px",
+                                    },
+                                    style_data={
+                                        "backgroundColor": COLORS["bg"],
+                                        "color": COLORS["text"],
+                                        "fontSize": "14px",
+                                        "fontFamily": "'JetBrains Mono', 'Cascadia Code', monospace",
+                                        "border": f"1px solid {COLORS['card_border']}",
+                                        "padding": "10px 16px",
+                                    },
+                                    style_data_conditional=[
+                                        {"if": {"filter_query": '{Artifact} contains "YES"'}, "color": COLORS["red"], "fontWeight": "bold"},
+                                        {"if": {"filter_query": '{Artifact} contains "No"'}, "color": COLORS["green"]},
+                                    ],
+                                    style_cell={"textAlign": "center"},
+                                    page_size=15,
+                                ),
+                                html.Div(id="verdict-banner", style={"marginTop": "20px"}),
+                            ],
+                        ),
                     ],
                 ),
             ],
@@ -270,6 +355,26 @@ app.layout = html.Div(
 # Callbacks
 # ---------------------------------------------------------------------------
 
+# ── Tab switching: show/hide panels ──────────────────────────────────────────
+@callback(
+    Output("panel-ensemble", "style"),
+    Output("panel-pulsar", "style"),
+    Output("panel-table", "style"),
+    Input("tabs", "value"),
+)
+def switch_tab(tab):
+    show = {"display": "block"}
+    hide = {"display": "none"}
+    if tab == "tab-ensemble":
+        return show, hide, hide
+    elif tab == "tab-pulsar":
+        return hide, show, hide
+    elif tab == "tab-table":
+        return hide, hide, show
+    return show, hide, hide
+
+
+# ── Run audit ────────────────────────────────────────────────────────────────
 @callback(
     Output("audit-data", "data"),
     Output("loading-text", "children"),
@@ -282,19 +387,19 @@ app.layout = html.Div(
 def run_audit_callback(n_clicks, event_name, window, simulate_lag):
     """Run the full audit pipeline and store results."""
     if n_clicks == 0:
-        return None, ""
+        return no_update, ""
 
     gw_time = KNOWN_EVENTS[event_name]
     sim = "sim" in (simulate_lag or [])
 
     ensemble = load_ensemble(gw_time, simulate_lag=sim)
     if not ensemble:
-        return None, "❌ No pulsar data available."
+        return no_update, "❌ No pulsar data available."
 
     strain = load_strain(gw_time)
     results = run_audit(gw_time, ensemble, window)
 
-    # Serialize for dcc.Store
+    # Serialize for dcc.Store (must be JSON-serializable)
     serialized = {
         "event": event_name,
         "gw_time": gw_time,
@@ -325,6 +430,7 @@ def run_audit_callback(n_clicks, event_name, window, simulate_lag):
     return serialized, f"✅ Loaded {len(ensemble)} pulsars."
 
 
+# ── Status badge ─────────────────────────────────────────────────────────────
 @callback(
     Output("status-badge", "children"),
     Output("status-badge", "style"),
@@ -345,6 +451,7 @@ def update_status_badge(data):
     return "✓ NULL HYPOTHESIS", {**base_style, "backgroundColor": "rgba(16,185,129,0.15)", "color": COLORS["green"], "border": f"1px solid {COLORS['green']}"}
 
 
+# ── Results card ─────────────────────────────────────────────────────────────
 @callback(
     Output("results-card", "children"),
     Input("audit-data", "data"),
@@ -381,26 +488,15 @@ def _result_row(label, value, color=None):
     )
 
 
+# ── Ensemble chart ───────────────────────────────────────────────────────────
 @callback(
-    Output("tab-content", "children"),
-    Input("tabs", "value"),
+    Output("ensemble-graph", "figure"),
     Input("audit-data", "data"),
 )
-def render_tab(tab, data):
+def update_ensemble_chart(data):
     if data is None:
-        return html.Div(
-            html.P("Press ▶ Run Audit to begin analysis.", style={"color": COLORS["text_dim"], "fontSize": "16px", "textAlign": "center", "marginTop": "100px"}),
-        )
+        return _empty_fig()
 
-    if tab == "tab-ensemble":
-        return _render_ensemble_tab(data)
-    elif tab == "tab-pulsar":
-        return _render_pulsar_tab(data)
-    elif tab == "tab-table":
-        return _render_table_tab(data)
-
-
-def _render_ensemble_tab(data):
     gw_time = data["gw_time"]
     has_strain = "strain_times" in data
 
@@ -413,7 +509,6 @@ def _render_ensemble_tab(data):
         subplot_titles=["GW Strain (H1)", "Pulsar Timing Residuals (Normalized σ)"] if has_strain else ["Pulsar Timing Residuals (Normalized σ)"],
     )
 
-    # Strain subplot
     if has_strain:
         fig.add_trace(
             go.Scatter(
@@ -428,7 +523,6 @@ def _render_ensemble_tab(data):
         )
         fig.add_vline(x=0, line=dict(color=COLORS["red"], width=2), row=1, col=1)
 
-    # Pulsar ensemble subplot
     chart_row = 2 if has_strain else 1
     for i, (psr_name, psr_data) in enumerate(data["pulsars"].items()):
         times = np.array(psr_data["times"]) - gw_time
@@ -449,7 +543,6 @@ def _render_ensemble_tab(data):
             row=chart_row, col=1,
         )
 
-    # Event line & window
     window = data["window"]
     fig.add_vline(x=0, line=dict(color=COLORS["red"], width=2, dash="solid"), row=chart_row, col=1)
     fig.add_vrect(x0=-window, x1=window, fillcolor="rgba(245,158,11,0.06)", line=dict(width=1, color="rgba(245,158,11,0.3)"), row=chart_row, col=1)
@@ -475,73 +568,67 @@ def _render_ensemble_tab(data):
     fig.update_xaxes(title_text="Time relative to GW Event (s)", row=chart_row, col=1, gridcolor="#1e293b", zerolinecolor="#334155")
     fig.update_yaxes(gridcolor="#1e293b", zerolinecolor="#334155")
 
-    return dcc.Graph(figure=fig, config={"displayModeBar": True, "scrollZoom": True}, style={"borderRadius": "12px", "overflow": "hidden"})
+    return fig
 
 
-def _render_pulsar_tab(data):
-    psr_names = list(data["pulsars"].keys())
-    gw_time = data["gw_time"]
-    window = data["window"]
-
-    children = [
-        dcc.Dropdown(
-            id="pulsar-select",
-            options=[{"label": p, "value": p} for p in psr_names],
-            value=psr_names[0] if psr_names else None,
-            clearable=False,
-            style={"backgroundColor": "#1e293b", "color": "#e2e8f0", "borderColor": "#334155", "borderRadius": "8px", "marginBottom": "20px", "maxWidth": "400px"},
-        ),
-        html.Div(id="pulsar-detail-chart"),
-    ]
-    return html.Div(children)
-
-
+# ── Pulsar dropdown options ──────────────────────────────────────────────────
 @callback(
-    Output("pulsar-detail-chart", "children"),
+    Output("pulsar-select", "options"),
+    Output("pulsar-select", "value"),
+    Input("audit-data", "data"),
+)
+def update_pulsar_dropdown(data):
+    if data is None:
+        return [], None
+    psr_names = list(data["pulsars"].keys())
+    return [{"label": p, "value": p} for p in psr_names], psr_names[0] if psr_names else None
+
+
+# ── Pulsar detail chart ──────────────────────────────────────────────────────
+@callback(
+    Output("pulsar-graph", "figure"),
     Input("pulsar-select", "value"),
     Input("audit-data", "data"),
 )
-def render_pulsar_detail(psr_name, data):
-    if data is None or psr_name is None or psr_name not in data["pulsars"]:
-        return html.P("Select a pulsar.", style={"color": COLORS["text_dim"]})
+def update_pulsar_chart(psr_name, data):
+    if data is None or psr_name is None or psr_name not in data.get("pulsars", {}):
+        return _empty_fig("Select a pulsar above.")
 
     psr = data["pulsars"][psr_name]
     gw_time = data["gw_time"]
     window = data["window"]
 
     times = np.array(psr["times"]) - gw_time
-    residuals = np.array(psr["residuals"]) * 1e6  # Convert to microseconds
+    residuals = np.array(psr["residuals"]) * 1e6  # µs
 
-    # Window mask
     mask = (times >= -window) & (times <= window)
 
     fig = go.Figure()
 
-    # Background residuals
-    fig.add_trace(go.Scatter(
-        x=times[~mask].tolist(),
-        y=residuals[~mask].tolist(),
-        mode="markers",
-        marker=dict(size=4, color=COLORS["text_dim"], opacity=0.3),
-        name="Baseline",
-        hovertemplate="Δt=%{x:.1f}s<br>Residual=%{y:.3f} µs<extra>Baseline</extra>",
-    ))
+    # Baseline residuals
+    if np.any(~mask):
+        fig.add_trace(go.Scatter(
+            x=times[~mask].tolist(),
+            y=residuals[~mask].tolist(),
+            mode="markers",
+            marker=dict(size=4, color=COLORS["text_dim"], opacity=0.3),
+            name="Baseline",
+            hovertemplate="Δt=%{x:.1f}s<br>Residual=%{y:.3f} µs<extra>Baseline</extra>",
+        ))
 
     # In-window residuals
-    fig.add_trace(go.Scatter(
-        x=times[mask].tolist(),
-        y=residuals[mask].tolist(),
-        mode="markers",
-        marker=dict(size=6, color=COLORS["accent"], opacity=0.8, line=dict(width=1, color="white")),
-        name="In Window",
-        hovertemplate="Δt=%{x:.1f}s<br>Residual=%{y:.3f} µs<extra>Window</extra>",
-    ))
+    if np.any(mask):
+        fig.add_trace(go.Scatter(
+            x=times[mask].tolist(),
+            y=residuals[mask].tolist(),
+            mode="markers",
+            marker=dict(size=6, color=COLORS["accent"], opacity=0.8, line=dict(width=1, color="white")),
+            name="In Window",
+            hovertemplate="Δt=%{x:.1f}s<br>Residual=%{y:.3f} µs<extra>Window</extra>",
+        ))
 
-    # Event line
     fig.add_vline(x=0, line=dict(color=COLORS["red"], width=2))
     fig.add_vrect(x0=-window, x1=window, fillcolor="rgba(99,102,241,0.06)", line=dict(width=1, color="rgba(99,102,241,0.3)"))
-
-    sigma_color = COLORS["green"] if abs(psr["sigma"]) < 1 else (COLORS["yellow"] if abs(psr["sigma"]) < 3 else COLORS["red"])
 
     fig.update_layout(
         template="plotly_dark",
@@ -561,10 +648,19 @@ def render_pulsar_detail(psr_name, data):
         yaxis=dict(gridcolor="#1e293b", zerolinecolor="#334155"),
     )
 
-    return dcc.Graph(figure=fig, config={"displayModeBar": True, "scrollZoom": True}, style={"borderRadius": "12px", "overflow": "hidden"})
+    return fig
 
 
-def _render_table_tab(data):
+# ── Results table ────────────────────────────────────────────────────────────
+@callback(
+    Output("results-table", "data"),
+    Output("verdict-banner", "children"),
+    Input("audit-data", "data"),
+)
+def update_results_table(data):
+    if data is None:
+        return [], html.P("Run an audit to see results.", style={"color": COLORS["text_dim"]})
+
     rows = []
     for psr_name, psr_data in data["pulsars"].items():
         rows.append({
@@ -575,54 +671,25 @@ def _render_table_tab(data):
             "Artifact": "🚨 YES" if psr_data["is_artifact"] else "✓ No",
         })
 
-    return html.Div([
-        dash_table.DataTable(
-            data=rows,
-            columns=[{"name": col, "id": col} for col in ["Pulsar", "σ Deviation", "Window RMS (s)", "Baseline RMS (s)", "Artifact"]],
-            style_table={"overflowX": "auto", "borderRadius": "12px"},
-            style_header={
-                "backgroundColor": COLORS["card"],
-                "color": COLORS["text"],
-                "fontWeight": "600",
-                "fontSize": "13px",
-                "textTransform": "uppercase",
-                "letterSpacing": "0.5px",
-                "border": f"1px solid {COLORS['card_border']}",
-                "padding": "12px 16px",
-            },
-            style_data={
-                "backgroundColor": COLORS["bg"],
-                "color": COLORS["text"],
-                "fontSize": "14px",
-                "fontFamily": "'JetBrains Mono', 'Cascadia Code', monospace",
-                "border": f"1px solid {COLORS['card_border']}",
-                "padding": "10px 16px",
-            },
-            style_data_conditional=[
-                {"if": {"filter_query": '{Artifact} contains "YES"'}, "color": COLORS["red"], "fontWeight": "bold"},
-                {"if": {"filter_query": '{Artifact} contains "No"'}, "color": COLORS["green"]},
-            ],
-            style_cell={"textAlign": "center"},
-            page_size=15,
-        ),
-        html.Div(
-            style={"marginTop": "20px", "padding": "20px", "backgroundColor": "rgba(99,102,241,0.08)", "borderRadius": "12px", "border": f"1px solid {COLORS['card_border']}"},
-            children=[
-                html.H3(
-                    f"Ensemble Verdict: {'COHERENT ARTIFACT DETECTED' if data['is_ensemble_artifact'] else 'Universal Clock Stability Confirmed'}",
-                    style={
-                        "color": COLORS["red"] if data["is_ensemble_artifact"] else COLORS["green"],
-                        "margin": "0 0 8px 0",
-                        "fontSize": "18px",
-                    },
-                ),
-                html.P(
-                    f"Mean Ensemble σ = {data['ensemble_sigma']:.4f}  |  {data['n_pulsars_in_window']} pulsars in window  |  {data['n_detectors_above_1s']} above 1σ  |  Simulation: {'ON' if data['simulate_lag'] else 'OFF'}",
-                    style={"color": COLORS["text_dim"], "margin": "0", "fontSize": "14px", "fontFamily": "'JetBrains Mono', monospace"},
-                ),
-            ],
-        ),
-    ])
+    banner = html.Div(
+        style={"padding": "20px", "backgroundColor": "rgba(99,102,241,0.08)", "borderRadius": "12px", "border": f"1px solid {COLORS['card_border']}"},
+        children=[
+            html.H3(
+                f"Ensemble Verdict: {'COHERENT ARTIFACT DETECTED' if data['is_ensemble_artifact'] else 'Universal Clock Stability Confirmed'}",
+                style={
+                    "color": COLORS["red"] if data["is_ensemble_artifact"] else COLORS["green"],
+                    "margin": "0 0 8px 0",
+                    "fontSize": "18px",
+                },
+            ),
+            html.P(
+                f"Mean Ensemble σ = {data['ensemble_sigma']:.4f}  |  {data['n_pulsars_in_window']} pulsars in window  |  {data['n_detectors_above_1s']} above 1σ  |  Simulation: {'ON' if data['simulate_lag'] else 'OFF'}",
+                style={"color": COLORS["text_dim"], "margin": "0", "fontSize": "14px", "fontFamily": "'JetBrains Mono', monospace"},
+            ),
+        ],
+    )
+
+    return rows, banner
 
 
 # ---------------------------------------------------------------------------
