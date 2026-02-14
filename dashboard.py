@@ -693,11 +693,35 @@ def update_results_table(data):
 
 
 # ---------------------------------------------------------------------------
-# Entry point
+# Entry point — pre-load all data before starting the server
 # ---------------------------------------------------------------------------
+def _preload_data():
+    """Pre-load pulsar ensembles and strain data so callbacks are instant."""
+    import time
+    t0 = time.time()
+
+    for event_name, gw_time in KNOWN_EVENTS.items():
+        print(f"  Loading pulsar ensemble for {event_name}...")
+        try:
+            load_ensemble(gw_time, simulate_lag=False)
+        except Exception as e:
+            print(f"    ⚠ Failed to load ensemble for {event_name}: {e}")
+
+        print(f"  Loading GW strain for {event_name}...")
+        try:
+            load_strain(gw_time)
+        except Exception as e:
+            print(f"    ⚠ Strain data unavailable for {event_name}: {e}")
+
+    elapsed = time.time() - t0
+    print(f"\n  ✅ Data pre-loaded in {elapsed:.1f}s ({len(_PULSAR_CACHE)} ensembles, {len(_STRAIN_CACHE)} strain datasets)")
+
+
 if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("  🔭 Demiurge Trace — Interactive Dashboard")
-    print("  Open http://127.0.0.1:8050 in your browser")
-    print("=" * 60 + "\n")
-    app.run(debug=True, host="127.0.0.1", port=8050)
+    print("=" * 60)
+    print("\n  Pre-loading data (this may take a minute)...\n")
+    _preload_data()
+    print(f"\n  Dashboard ready at http://127.0.0.1:8050\n")
+    app.run(debug=False, host="127.0.0.1", port=8050)
