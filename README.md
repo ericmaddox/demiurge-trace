@@ -356,6 +356,13 @@ This project is an experimental tool for testing the limits of astrophysical dat
 
 ## Changelog
 
+### v0.4.1 — 2026-02-14
+
+- **Fixed Sliding Window tab** — resolved duplicate `hovermode` keyword causing Plotly rendering failure
+- **Fixed Sky Map tab** — replaced `Scattergeo`/Mollweide projection with RA/DEC scatter for Plotly compatibility
+- **Fixed Correlations tab** — converted numpy matrix to plain lists for proper heatmap text rendering
+- **All 8 dashboard tabs** now render correctly after audit
+
 ### v0.4.0 — 2026-02-14
 
 - **Sky Map tab** — Mollweide projection of all pulsars color-coded by σ deviation

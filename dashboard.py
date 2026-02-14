@@ -336,7 +336,8 @@ def update_psr(psr, cfg):
 @callback(Output("sweep-graph", "figure"), Input("audit-config", "data"))
 def update_sweep(cfg):
     if cfg is None: return empty_fig()
-    return build_sweep_fig(_SWEEP_CACHE.get((KNOWN_EVENTS[cfg["event"]], cfg["window"])))
+    key = (KNOWN_EVENTS[cfg["event"]], cfg["window"])
+    return build_sweep_fig(_SWEEP_CACHE.get(key))
 
 
 @callback(Output("skymap-graph", "figure"), Input("audit-config", "data"))
@@ -349,20 +350,23 @@ def update_skymap(cfg):
 @callback(Output("corr-graph", "figure"), Input("audit-config", "data"))
 def update_corr(cfg):
     if cfg is None: return empty_fig("Run audit.")
-    return build_correlation_fig(_CORR_CACHE.get((KNOWN_EVENTS[cfg["event"]], cfg["window"])))
+    key = (KNOWN_EVENTS[cfg["event"]], cfg["window"])
+    return build_correlation_fig(_CORR_CACHE.get(key))
 
 
 @callback(Output("null-graph", "figure"), Input("audit-config", "data"))
 def update_null(cfg):
     if cfg is None: return empty_fig("Run audit.")
-    null = _NULL_CACHE.get((KNOWN_EVENTS[cfg["event"]], cfg["window"]))
+    key = (KNOWN_EVENTS[cfg["event"]], cfg["window"])
+    null = _NULL_CACHE.get(key)
     return build_null_dist_fig(null, cfg["ensemble_sigma"])
 
 
 @callback(Output("hd-graph", "figure"), Input("audit-config", "data"))
 def update_hd(cfg):
     if cfg is None: return empty_fig("Run audit.")
-    return build_hellings_downs_fig(_HD_CACHE.get((KNOWN_EVENTS[cfg["event"]], cfg["window"])))
+    key = (KNOWN_EVENTS[cfg["event"]], cfg["window"])
+    return build_hellings_downs_fig(_HD_CACHE.get(key))
 
 
 @callback(Output("results-table", "data"), Output("verdict-banner", "children"), Input("audit-config", "data"))

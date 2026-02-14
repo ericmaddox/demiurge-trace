@@ -120,9 +120,11 @@ def build_sweep_fig(sweeps):
                   annotation_text="GW Event", annotation_font_color=COLORS["red"])
     fig.add_hline(y=3.0, line=dict(color=COLORS["yellow"], width=1, dash="dash"),
                   annotation_text="3σ", annotation_font_color=COLORS["yellow"])
-    fig.update_layout(**_base_layout(600),
+    layout = _base_layout(600)
+    layout["hovermode"] = "x unified"  # Override base hovermode
+    fig.update_layout(**layout,
         title=dict(text="Sliding Window Sweep — σ vs Time Offset", font=dict(size=16)),
-        xaxis_title="Offset from GW Event (days)", yaxis_title="σ Deviation", hovermode="x unified",
+        xaxis_title="Offset from GW Event (days)", yaxis_title="σ Deviation",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(size=11)))
     return fig
 
@@ -131,29 +133,39 @@ def build_sky_map(ensemble, audit_results):
     if not ensemble:
         return empty_fig("No data.")
     names = list(ensemble.keys())
-    lats, lons, sigmas, texts = [], [], [], []
+    ra_list, dec_list, sigmas, labels = [], [], [], []
     for psr in names:
         if psr in PULSAR_COORDS:
             ra, dec = PULSAR_COORDS[psr]
-            lon = ra - 360 if ra > 180 else ra
-            lats.append(dec); lons.append(lon)
+            # Convert RA to [-180,180] for Mollweide-like display
+            ra_plot = ra - 360 if ra > 180 else ra
+            ra_list.append(ra_plot)
+            dec_list.append(dec)
             s = audit_results.get("pulsar_results", {}).get(psr, {}).get("sigma", 0)
             sigmas.append(abs(s))
-            texts.append(f"{psr}<br>σ={s:.3f}")
+            labels.append(psr)
+    if not sigmas:
+        return empty_fig("No pulsar coordinates available.")
+    max_s = max(sigmas) if max(sigmas) > 0 else 1
     fig = go.Figure()
-    fig.add_trace(go.Scattergeo(
-        lat=lats, lon=lons, text=texts, hoverinfo="text", mode="markers+text",
-        textposition="top center", textfont=dict(size=10, color=COLORS["text"]),
-        marker=dict(size=[max(10, s * 15) for s in sigmas],
-                    color=sigmas, colorscale="Viridis", cmin=0, cmax=max(sigmas) if sigmas else 1,
-                    colorbar=dict(title="σ", titlefont=dict(color=COLORS["text"]),
-                                  tickfont=dict(color=COLORS["text"])),
-                    line=dict(width=1, color="white"), opacity=0.9)))
-    fig.update_geos(projection_type="mollweide", showland=False, showocean=False,
-                    showframe=True, framecolor=COLORS["card_border"], framewidth=1,
-                    bgcolor=COLORS["bg"], showcoastlines=False,
-                    lonaxis=dict(gridcolor="#1e293b"), lataxis=dict(gridcolor="#1e293b"))
-    fig.update_layout(**_base_layout(550), title=dict(text="Pulsar Sky Map (σ Deviation)", font=dict(size=16)))
+    fig.add_trace(go.Scatter(
+        x=ra_list, y=dec_list, mode="markers+text",
+        text=labels, textposition="top center",
+        textfont=dict(size=10, color=COLORS["text"]),
+        hovertemplate=[f"<b>{l}</b><br>RA={r:.1f}°<br>DEC={d:.1f}°<br>σ={s:.3f}<extra></extra>"
+                       for l, r, d, s in zip(labels, ra_list, dec_list, sigmas)],
+        marker=dict(
+            size=[max(12, s / max_s * 30) for s in sigmas],
+            color=sigmas, colorscale="Viridis", cmin=0, cmax=max_s,
+            colorbar=dict(title=dict(text="σ"), tickfont=dict(color=COLORS["text"])),
+            line=dict(width=1, color="white"), opacity=0.9,
+        ),
+    ))
+    fig.update_layout(**_base_layout(550),
+        title=dict(text="Pulsar Sky Map (σ Deviation)", font=dict(size=16)),
+        xaxis=dict(title="Right Ascension (°)", gridcolor="#1e293b", range=[-180, 180]),
+        yaxis=dict(title="Declination (°)", gridcolor="#1e293b", range=[-90, 90]),
+    )
     return fig
 
 
@@ -162,15 +174,18 @@ def build_correlation_fig(corr_data):
         return empty_fig("Run audit first.")
     names = corr_data["names"]
     matrix = corr_data["matrix"]
+    # Convert to list-of-lists for Plotly compatibility
+    z_data = matrix.tolist() if hasattr(matrix, 'tolist') else matrix
+    text_data = [[f"{v:.3f}" for v in row] for row in z_data]
     fig = go.Figure(data=go.Heatmap(
-        z=matrix, x=names, y=names, colorscale="RdBu_r", zmin=-1, zmax=1,
-        text=np.round(matrix, 3), texttemplate="%{text}", textfont=dict(size=11),
-        colorbar=dict(title="Pearson r", titlefont=dict(color=COLORS["text"]),
-                      tickfont=dict(color=COLORS["text"]))))
+        z=z_data, x=names, y=names, colorscale="RdBu_r", zmin=-1, zmax=1,
+        text=text_data, texttemplate="%{text}",
+        colorbar=dict(title=dict(text="Pearson r"), tickfont=dict(color=COLORS["text"]))))
     fig.update_layout(**_base_layout(600),
         title=dict(text="Pairwise Residual Correlation Matrix", font=dict(size=16)),
         xaxis=dict(tickangle=45, tickfont=dict(size=10)),
-        yaxis=dict(tickfont=dict(size=10), autorange="reversed"))
+        yaxis=dict(tickfont=dict(size=10)))
+    fig.update_yaxes(autorange="reversed")
     return fig
 
 
