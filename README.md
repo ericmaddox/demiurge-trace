@@ -127,7 +127,7 @@ source .venv/bin/activate
 .\.venv\Scripts\activate
 
 # Install dependencies
-pip install pint-pulsar gwpy matplotlib numpy requests
+pip install pint-pulsar gwpy matplotlib numpy requests dash plotly
 ```
 
 ### Data Setup
@@ -175,6 +175,20 @@ Inject a synthetic 10 µs lag spike across the ensemble to validate detection se
 python main.py --event GW170817 --ensemble --simulate-lag --output results/sim_detection.png
 ```
 
+### Interactive Dashboard
+
+Launch the web-based Plotly Dash dashboard for interactive exploration:
+
+```bash
+python dashboard.py
+```
+
+Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser. Features include:
+- **Event & window selection** with real-time re-analysis
+- **Interactive Plotly charts** with zoom, pan, and hover tooltips
+- **Per-pulsar deep dives** with window-highlighted residuals
+- **Results table** with color-coded sigma deviations
+
 ### CLI Reference
 
 ```
@@ -199,6 +213,7 @@ options:
 ```
 demiurge-trace/
 ├── main.py                  # CLI entry point
+├── dashboard.py             # Interactive Plotly Dash web dashboard
 ├── setup_array.py           # NANOGrav data acquisition & patching
 ├── setup_data.py            # Alternative data setup utilities
 ├── get_data_urls.py         # Zenodo URL resolver

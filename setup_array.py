@@ -11,6 +11,12 @@ TARGET_PULSARS = [
     "B1937+21", "B1855+09", "J1600-3053", "J2145-0750", "J1857+0943"
 ]
 
+# Alias map: some pulsars appear in NANOGrav data under a different name
+# Key = our target name, Value = alternative prefix used in tarball filenames
+PULSAR_ALIASES = {
+    "J1857+0943": "B1857+09",
+}
+
 def patch_par_file(filepath):
     """Patches PAR files to fix binary model compatibility."""
     try:
@@ -76,9 +82,11 @@ def setup_array():
 
             # Check if this file belongs to one of our target pulsars
             for psr in TARGET_PULSARS:
-                # Match start of filename (e.g. J1713+0747_...)
-                if filename.startswith(psr):
+                # Check both the canonical name and any known alias
+                alias = PULSAR_ALIASES.get(psr)
+                if filename.startswith(psr) or (alias and filename.startswith(alias)):
                     # We prefer naming them PSR.par and PSR.tim locally for convenience
+                    # Always save under the canonical name (psr), not the alias
                     ext = ".par" if filename.endswith(".par") else ".tim"
                     target_name = f"{psr}{ext}"
                     
@@ -88,7 +96,8 @@ def setup_array():
                         
                     member.name = target_name 
                     tar.extract(member, path=DATA_DIR)
-                    print(f"  [EXTRACTED] {filename} -> {target_name}")
+                    matched_via = f" (matched via alias {alias})" if alias and filename.startswith(alias) else ""
+                    print(f"  [EXTRACTED] {filename} -> {target_name}{matched_via}")
                     
                     if target_name.endswith(".par"):
                         patch_par_file(os.path.join(DATA_DIR, target_name))
