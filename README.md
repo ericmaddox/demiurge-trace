@@ -183,11 +183,42 @@ Launch the web-based Plotly Dash dashboard for interactive exploration:
 python dashboard.py
 ```
 
-Open [http://127.0.0.1:8050](http://127.0.0.1:8050) in your browser. Features include:
-- **Event & window selection** with real-time re-analysis
-- **Interactive Plotly charts** with zoom, pan, and hover tooltips
-- **Per-pulsar deep dives** with window-highlighted residuals
-- **Results table** with color-coded sigma deviations
+Your default browser will open automatically once data pre-loading completes (~60s).
+
+### Reading the Dashboard
+
+After clicking **▶ Run Audit**, the dashboard populates three tabs:
+
+#### Tab 1 — Ensemble Overview
+
+| Element | What it shows |
+|:---|:---|
+| **Top subplot (purple)** | Raw LIGO strain data from the H1 (Hanford) detector centered on the GW event. The red vertical line marks the exact merger time (t = 0). |
+| **Bottom subplot (colored dots)** | Timing residuals for all pulsars in the ensemble, normalized to units of σ (standard deviations). Each color is a different pulsar. |
+| **Yellow shaded region** | The analysis window — the time range being compared to the baseline. |
+| **What to look for** | If the simulation hypothesis were true, you'd see a *coordinated cluster* of elevated residuals (dots far from y = 0) inside the yellow window across multiple pulsars simultaneously. Scattered, random dots are normal — that's pulsar noise. |
+
+#### Tab 2 — Per-Pulsar Detail
+
+| Element | What it shows |
+|:---|:---|
+| **Grey dots** | Baseline residuals (outside the analysis window) in microseconds (µs). This is the pulsar's normal timing noise. |
+| **Purple dots** | Residuals *inside* the analysis window, highlighted for comparison against the baseline. |
+| **Title bar stats** | `σ` = how many standard deviations the window RMS deviates from the baseline RMS. `Window RMS` = root-mean-square of residuals inside the window. `Baseline RMS` = the same metric for all data outside the window. |
+| **What to look for** | If σ ≈ 0, the window residuals are indistinguishable from normal noise — no artifact. If σ > 3, the window shows statistically significant excess timing variation that warrants investigation. |
+
+#### Tab 3 — Results Table
+
+| Column | Meaning |
+|:---|:---|
+| **Pulsar** | NANOGrav pulsar designation (J-name). |
+| **σ Deviation** | Number of standard deviations between window RMS and baseline RMS. Values near 0 = normal; > 3 = anomalous. |
+| **Window RMS** | Root-mean-square of timing residuals inside the analysis window (seconds). |
+| **Baseline RMS** | Root-mean-square of residuals outside the window (seconds). |
+| **Artifact** | ✓ No = consistent with real physics. 🚨 YES = anomalous deviation detected. |
+| **Verdict banner** | Ensemble-level conclusion. "Universal Clock Stability Confirmed" means no coherent artifact was found across the pulsar array. |
+
+> **Interpreting results:** A σ near 0 across all pulsars confirms that the universe's natural clocks (pulsars) show no timing anomalies coincident with the gravitational wave event — consistent with real physics, not a simulation.
 
 ### CLI Reference
 
