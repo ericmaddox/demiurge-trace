@@ -1,0 +1,71 @@
+name: CI — Smoke Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install numpy dash plotly
+      - name: Import check
+        run: |
+          python -c "from demiurge_trace import auditor; print('auditor OK')"
+          python -c "import dashboard_figures; print('figures OK')"
+      - name: Auditor unit tests
+        run: |
+          python -c "
+          import numpy as np
+          from demiurge_trace.auditor import audit_lag, monte_carlo_test, sliding_window_sweep, null_distribution_test, correlation_matrix, bayesian_evidence_ratio
+
+          # Generate test data
+          rng = np.random.default_rng(0)
+          times = np.linspace(1e9, 1e9 + 86400*30, 5000)
+          residuals = rng.normal(0, 1e-6, len(times))
+          gw_time = 1e9 + 86400*15
+
+          # audit_lag
+          r = audit_lag(gw_time, times, residuals, 86400)
+          assert 'sigma' in r, 'audit_lag missing sigma'
+          assert 'window_rms' in r, 'audit_lag missing window_rms'
+          print(f'audit_lag: sigma={r[\"sigma\"]:.4f}')
+
+          # monte_carlo_test
+          mc = monte_carlo_test(gw_time, times, residuals, 86400, n_iterations=100)
+          assert 'p_value' in mc
+          print(f'monte_carlo: p={mc[\"p_value\"]:.3f}')
+
+          # sliding_window_sweep
+          sw = sliding_window_sweep(gw_time, times, residuals, 86400, n_offsets=20)
+          assert len(sw['offsets']) == 20
+          print(f'sliding_window: {len(sw[\"offsets\"])} offsets')
+
+          # null_distribution_test
+          nd = null_distribution_test(times, residuals, 86400, n_trials=10)
+          assert len(nd['null_sigmas']) == 10
+          print(f'null_dist: mean={nd[\"mean\"]:.4f}')
+
+          # bayesian_evidence_ratio
+          bf = bayesian_evidence_ratio(gw_time, times, residuals, 86400)
+          assert 'bayes_factor' in bf
+          print(f'bayes: log10(BF)={bf[\"log_bf\"]:.3f}')
+
+          # correlation_matrix
+          ensemble = {'PSR_A': (times, residuals), 'PSR_B': (times, rng.normal(0, 1e-6, len(times)))}
+          cm = correlation_matrix(ensemble, gw_time, 86400)
+          assert cm['matrix'].shape == (2, 2)
+          print(f'correlation: shape={cm[\"matrix\"].shape}')
+
+          print('All tests passed!')
+          "
