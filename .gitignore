@@ -18,6 +18,7 @@ results/*.png
 audit_result.png
 audit_final.png
 *.png
+!assets/*.png
 
 # IDE
 .vscode/
