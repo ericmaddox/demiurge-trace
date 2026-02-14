@@ -1,0 +1,6 @@
+gwpy
+pint-pulsar
+astropy
+numpy
+scipy
+matplotlib

@@ -1,0 +1,1166 @@
+﻿.\.venv\Scripts\pytho
+n : RuntimeWarning: 
+This platform does 
+not support extended 
+precision 
+floating-point, and 
+PINT will run at 
+reduced precision.
+At line:1 char:1
++ .\.venv\Scripts\pyt
+hon check_mjds.py > c
+heck_mjds_results.txt
+ 2>&1
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Runtime   
+ Warning:...uced     
+precision.:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+2026-02-07 
+22:51:32.969 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:32.971 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:32.984 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:32.984 | DEBUG 
+   | pint.observatory
+:_load_gps_clock:108 
+- Loading global GPS 
+clock file
+2026-02-07 
+22:51:32.988 | DEBUG 
+   | pint.observatory
+.clock_file:__init__:
+812 - Global clock 
+file gps2utc.clk 
+saving kwargs={'bogus
+_last_correction': 
+False, 
+'valid_beyond_ends': 
+False}
+2026-02-07 
+22:51:32.990 | DEBUG 
+   | pint.observatory
+.clock_file:read_temp
+o2_clock_file:463 - 
+Loading 
+TEMPO2-format 
+observatory clock 
+correction file 
+gps2utc.clk (C:\Users
+\EricM\.astropy\cache
+\download\url\d3c81b5
+766f4bfb84e65504c8a45
+3085\contents) with b
+ogus_last_correction=
+False
+2026-02-07 
+22:51:33.012 | INFO  
+   | pint.observatory
+:find_clock_file:973 
+- Using global clock 
+file for gps2utc.clk 
+with bogus_last_corre
+ction=False
+2026-02-07 
+22:51:33.013 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:33.013 | INFO  
+   | pint.observatory
+:_load_bipm_clock:119
+ - Loading BIPM 
+clock version 
+bipm2023
+2026-02-07 
+22:51:33.014 | DEBUG 
+   | pint.observatory
+.clock_file:__init__:
+812 - Global clock 
+file 
+tai2tt_bipm2023.clk 
+saving kwargs={'bogus
+_last_correction': 
+False, 
+'valid_beyond_ends': 
+False}
+2026-02-07 
+22:51:33.016 | DEBUG 
+   | pint.observatory
+.clock_file:read_temp
+o2_clock_file:463 - 
+Loading 
+TEMPO2-format 
+observatory clock 
+correction file 
+tai2tt_bipm2023.clk (
+C:\Users\EricM\.astro
+py\cache\download\url
+\d0c6b0f6a57e39d4a167
+cd2aa08ad383\contents
+) with bogus_last_cor
+rection=False
+2026-02-07 
+22:51:33.022 | INFO  
+   | pint.observatory
+:find_clock_file:973 
+- Using global clock 
+file for 
+tai2tt_bipm2023.clk 
+with bogus_last_corre
+ction=False
+2026-02-07 
+22:51:33.024 | DEBUG 
+   | pint.observatory
+.clock_file:__init__:
+812 - Global clock 
+file time_ao.dat 
+saving kwargs={'bogus
+_last_correction': 
+False, 
+'valid_beyond_ends': 
+False}
+2026-02-07 
+22:51:33.026 | DEBUG 
+   | pint.observatory
+.clock_file:read_temp
+o_clock_file:613 - 
+Loading TEMPO-format 
+observatory clock 
+correction file 
+time_ao.dat (C:\Users
+\EricM\.astropy\cache
+\download\url\36fe8d7
+a16ab23eeb27a998de5b7
+eea4\contents) with b
+ogus_last_correction=
+False
+2026-02-07 
+22:51:33.044 | INFO  
+   | pint.observatory
+:find_clock_file:973 
+- Using global clock 
+file for time_ao.dat 
+with bogus_last_corre
+ction=False
+2026-02-07 
+22:51:33.044 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for observatory='arec
+ibo'.
+2026-02-07 
+22:51:33.143 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:33.144 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:33.144 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:33.175 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:33.678 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:34.180 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[-1.45152291e+11 
+-3.41594872e+10 
+-1.48071900e+10] m
+2026-02-07 
+22:51:34.408 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:34.410 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:34.472 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:34.473 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:34.482 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:34.482 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:34.483 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for observatory='arec
+ibo'.
+2026-02-07 
+22:51:34.542 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:34.542 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:34.542 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:34.567 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:34.811 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:34.836 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos [ 
+4.68369037e+10 
+-1.32439475e+11 
+-5.74310165e+10] m
+2026-02-07 
+22:51:35.062 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:35.064 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:35.093 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:35.094 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:35.098 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:35.099 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:35.100 | DEBUG 
+   | pint.observatory
+.clock_file:__init__:
+812 - Global clock 
+file time_vla.dat 
+saving kwargs={'bogus
+_last_correction': 
+False, 
+'valid_beyond_ends': 
+False}
+2026-02-07 
+22:51:35.102 | DEBUG 
+   | pint.observatory
+.clock_file:read_temp
+o_clock_file:613 - 
+Loading TEMPO-format 
+observatory clock 
+correction file 
+time_vla.dat (C:\User
+s\EricM\.astropy\cach
+e\download\url\ca6f7a
+d9e08b287a32a9fe8b7c6
+0e022\contents) with 
+bogus_last_correction
+=False
+2026-02-07 
+22:51:35.110 | INFO  
+   | pint.observatory
+:find_clock_file:973 
+- Using global clock 
+file for 
+time_vla.dat with bog
+us_last_correction=Fa
+lse
+2026-02-07 
+22:51:35.110 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='vla'.
+2026-02-07 
+22:51:35.138 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:35.139 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:35.139 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:35.149 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:35.400 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:35.416 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[-1.28150501e+11  
+6.96662649e+10  
+3.02076657e+10] m
+2026-02-07 
+22:51:35.645 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:35.647 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:35.741 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:35.743 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:35.758 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:35.758 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:35.760 | DEBUG 
+   | pint.observatory
+.clock_file:__init__:
+812 - Global clock 
+file time_gbt.dat 
+saving kwargs={'bogus
+_last_correction': 
+False, 
+'valid_beyond_ends': 
+False}
+2026-02-07 
+22:51:35.762 | DEBUG 
+   | pint.observatory
+.clock_file:read_temp
+o_clock_file:613 - 
+Loading TEMPO-format 
+observatory clock 
+correction file 
+time_gbt.dat (C:\User
+s\EricM\.astropy\cach
+e\download\url\599e3e
+bbfc317e090244ee1ef4c
+79374\contents) with 
+bogus_last_correction
+=False
+2026-02-07 
+22:51:35.763 | INFO  
+   | pint.observatory
+.clock_file:read_temp
+o_clock_file:703 - 
+Disregarding 
+suspicious MJD 
+-2271.5 in TEMPO 
+clock file
+2026-02-07 
+22:51:35.779 | INFO  
+   | pint.observatory
+:find_clock_file:973 
+- Using global clock 
+file for 
+time_gbt.dat with bog
+us_last_correction=Fa
+lse
+2026-02-07 
+22:51:35.779 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='gbt'.
+2026-02-07 
+22:51:35.876 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:35.876 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:35.876 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:35.988 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:36.238 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:36.280 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos [ 
+1.41285212e+11 
+-4.75684469e+10 
+-2.06246842e+10] m
+2026-02-07 
+22:51:36.531 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:36.534 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:36.623 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:36.624 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:36.638 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:36.638 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:36.639 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='gbt'.
+2026-02-07 
+22:51:36.728 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:36.728 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:36.728 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:36.757 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:36.999 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:37.035 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[-6.98831100e+10  
+1.19520667e+11  
+5.18208179e+10] m
+2026-02-07 
+22:51:37.271 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:37.272 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:37.437 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:37.439 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:37.465 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:37.465 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:37.466 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for observatory='arec
+ibo'.
+2026-02-07 
+22:51:37.637 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:37.638 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:37.638 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:37.689 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:37.947 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:38.002 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[1.43076569e+11 
+3.77218560e+10 
+1.63577124e+10] m
+2026-02-07 
+22:51:38.260 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:38.261 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:38.373 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:38.375 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:38.391 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:38.392 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:38.393 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='gbt'.
+2026-02-07 
+22:51:38.509 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:38.509 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:38.509 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:38.547 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:38.779 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:38.815 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[-1.30694332e+11  
+6.47990325e+10  
+2.80943911e+10] m
+2026-02-07 
+22:51:39.069 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:39.072 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:39.300 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:39.303 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:39.336 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:39.336 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:39.337 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='gbt'.
+2026-02-07 
+22:51:39.542 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:39.543 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:39.543 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='vla'.
+2026-02-07 
+22:51:39.568 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:39.568 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:39.568 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:39.635 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:39.905 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:39.968 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[1.39987252e+11 
+4.88137126e+10 
+2.11523609e+10] m
+2026-02-07 
+22:51:40.194 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:40.425 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:40.439 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos 
+[-2.51850582e+10  
+1.34075277e+11  
+5.81309343e+10] m
+2026-02-07 
+22:51:40.682 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:40.683 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+2026-02-07 
+22:51:40.778 | DEBUG 
+   | pint.toa:__init_
+_:1377 - No pulse 
+number flags found 
+in the TOAs
+2026-02-07 
+22:51:40.780 | DEBUG 
+   | pint.toa:apply_c
+lock_corrections:2232
+ - Applying clock 
+corrections 
+(include_bipm = True)
+2026-02-07 
+22:51:40.794 | INFO  
+   | pint.observatory
+:gps_correction:230 
+- Applying GPS to 
+UTC clock correction 
+(~few nanoseconds)
+2026-02-07 
+22:51:40.795 | INFO  
+   | pint.observatory
+:bipm_correction:245 
+- Applying TT(TAI) 
+to TT(BIPM2023) 
+clock correction 
+(~27 us)
+2026-02-07 
+22:51:40.795 | INFO  
+   | pint.observatory
+.topo_obs:clock_corre
+ctions:340 - 
+Applying observatory 
+clock corrections 
+for 
+observatory='gbt'.
+2026-02-07 
+22:51:40.895 | DEBUG 
+   | pint.toa:compute
+_TDBs:2278 - 
+Computing TDB 
+columns.
+2026-02-07 
+22:51:40.896 | 
+WARNING  | pint.toa:c
+ompute_TDBs:2288 - 
+No ephemeris 
+provided to TOAs 
+object or 
+compute_TDBs. Using 
+DE421
+2026-02-07 
+22:51:40.896 | DEBUG 
+   | pint.toa:compute
+_TDBs:2299 - Using 
+EPHEM = DE421 for 
+TDB calculation.
+2026-02-07 
+22:51:40.930 | DEBUG 
+   | pint.toa:compute
+_posvels:2379 - 
+Computing PosVels of 
+observatories and 
+Earth, using DE421
+2026-02-07 
+22:51:41.177 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:41.216 | DEBUG 
+   | pint.toa:compute
+_posvels:2432 - SSB 
+obs pos [ 
+1.49605907e+11 
+-4.42726778e+09 
+-1.91385001e+09] m
+2026-02-07 
+22:51:41.459 | INFO  
+   | pint.solar_syste
+m_ephemerides:_load_k
+ernel_link:85 - Set 
+solar system 
+ephemeris to de421 
+from download
+2026-02-07 
+22:51:41.461 | DEBUG 
+   | pint.toa:compute
+_posvels:2446 - 
+Adding columns 
+ssb_obs_pos 
+ssb_obs_vel 
+obs_sun_pos
+GW170817 MJD: 57982.52895
+[B1855+09] MJD Range: 53358.73 to 59051.16 (Count: 364)
+  --> OK: Event falls within range.
+[B1937+21] MJD Range: 53420.61 to 59065.13 (Count: 236)
+  --> OK: Event falls within range.
+[J0437-4715] MJD Range: 57221.65 to 58957.93 (Count: 117)
+  --> OK: Event falls within range.
+[J1600-3053] MJD Range: 54400.66 to 58940.32 (Count: 404)
+  --> OK: Event falls within range.
+[J1614-2230] MJD Range: 54724.87 to 58940.29 (Count: 367)
+  --> OK: Event falls within range.
+[J1713+0747] MJD Range: 53420.49 to 59071.00 (Count: 653)
+  --> OK: Event falls within range.
+[J1744-1134] MJD Range: 53216.13 to 58940.43 (Count: 433)
+  --> OK: Event falls within range.
+[J1909-3744] MJD Range: 53292.02 to 59007.36 (Count: 833)
+  --> OK: Event falls within range.
+[J2145-0750] MJD Range: 53267.18 to 58942.55 (Count: 400)
+  --> OK: Event falls within range.

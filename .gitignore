@@ -1,0 +1,28 @@
+# Virtual Environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Data (downloaded separately via setup_array.py)
+data/real/
+
+# Results / Output plots
+results/*.png
+audit_result.png
+audit_final.png
+*.png
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
