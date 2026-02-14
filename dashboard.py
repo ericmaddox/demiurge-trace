@@ -23,6 +23,7 @@ warnings.filterwarnings("ignore")
 _ENSEMBLE_CACHE = {}   # (gw_time, sim) -> dict of {psr_name: (times, residuals)}
 _STRAIN_CACHE = {}     # gw_time -> strain object or None
 _AUDIT_RESULTS = {}    # session key -> small results dict
+_SWEEP_CACHE = {}      # (gw_time, window) -> {psr_name: {offsets, sigmas, gw_sigma}}
 
 KNOWN_EVENTS = {
     "GW150914": 1126259462.4,
@@ -79,7 +80,24 @@ def _load_strain(gw_time):
 
 def _run_audit(gw_time, ensemble, window):
     from demiurge_trace import auditor
-    return auditor.audit_ensemble(gw_time, ensemble, window_seconds=window)
+    return auditor.audit_ensemble(gw_time, ensemble, window_seconds=window,
+                                  monte_carlo=True, mc_iterations=10000)
+
+
+def _run_sweep(gw_time, ensemble, window):
+    """Run sliding window sweep for all pulsars. Cached."""
+    key = (gw_time, window)
+    if key in _SWEEP_CACHE:
+        return _SWEEP_CACHE[key]
+
+    from demiurge_trace import auditor
+    sweeps = {}
+    for psr_name, (times, residuals) in ensemble.items():
+        sweeps[psr_name] = auditor.sliding_window_sweep(
+            gw_time, times, residuals, window_seconds=window, n_offsets=200
+        )
+    _SWEEP_CACHE[key] = sweeps
+    return sweeps
 
 
 def _empty_fig(msg="Press ▶ Run Audit to begin."):
@@ -104,7 +122,7 @@ def _result_row(label, value, color=None):
 
 
 # ---------------------------------------------------------------------------
-# Build figures directly from server-side cache (no serialization)
+# Build figures directly from server-side cache
 # ---------------------------------------------------------------------------
 
 def _build_ensemble_fig(event_name, window):
@@ -170,13 +188,15 @@ def _build_pulsar_fig(event_name, psr_name, window, audit_results):
 
     times, residuals = ensemble[psr_name]
     t = times - gw_time
-    res_us = residuals * 1e6  # microseconds
+    res_us = residuals * 1e6
     mask = (t >= -window) & (t <= window)
 
     psr_res = audit_results.get("pulsar_results", {}).get(psr_name, {})
     sigma = psr_res.get("sigma", 0)
     w_rms = psr_res.get("window_rms", 0)
     b_rms = psr_res.get("baseline_rms", 0)
+    p_val = psr_res.get("p_value")
+    p_str = f"  |  p = {p_val:.4f}" if p_val is not None else ""
 
     fig = go.Figure()
     if np.any(~mask):
@@ -199,11 +219,54 @@ def _build_pulsar_fig(event_name, psr_name, window, audit_results):
 
     fig.update_layout(
         template="plotly_dark", paper_bgcolor=COLORS["bg"], plot_bgcolor=COLORS["bg"],
-        title=dict(text=f"PSR {psr_name}  —  σ = {sigma:.4f}  |  Window RMS = {w_rms:.2e} s  |  Baseline RMS = {b_rms:.2e} s",
+        title=dict(text=f"PSR {psr_name}  —  σ = {sigma:.4f}  |  Window RMS = {w_rms:.2e} s  |  Baseline RMS = {b_rms:.2e} s{p_str}",
                    font=dict(size=14, color=COLORS["text"])),
         xaxis_title="Time relative to GW Event (s)", yaxis_title="Timing Residual (µs)",
         font=dict(family="Inter, system-ui, sans-serif", color=COLORS["text"]),
         height=500, margin=dict(l=60, r=30, t=60, b=40), hovermode="closest",
+        xaxis=dict(gridcolor="#1e293b", zerolinecolor="#334155"),
+        yaxis=dict(gridcolor="#1e293b", zerolinecolor="#334155"),
+    )
+    return fig
+
+
+def _build_sweep_fig(event_name, window):
+    """Build sliding window sigma-vs-offset chart for all pulsars."""
+    gw_time = KNOWN_EVENTS[event_name]
+    sweeps = _SWEEP_CACHE.get((gw_time, window))
+
+    if not sweeps:
+        return _empty_fig("No sweep data. Click Run Audit first.")
+
+    fig = go.Figure()
+
+    for i, (psr, data) in enumerate(sweeps.items()):
+        offsets_days = data["offsets"] / 86400.0
+        color = PULSAR_COLORS[i % len(PULSAR_COLORS)]
+        fig.add_trace(go.Scattergl(
+            x=offsets_days, y=data["sigmas"], mode="lines",
+            line=dict(color=color, width=1.5),
+            name=psr, opacity=0.7,
+            hovertemplate=f"<b>{psr}</b><br>Offset=%{{x:.1f}} days<br>σ=%{{y:.3f}}<extra></extra>",
+        ))
+
+    # Event marker
+    fig.add_vline(x=0, line=dict(color=COLORS["red"], width=2, dash="solid"),
+                  annotation_text="GW Event", annotation_font_color=COLORS["red"])
+
+    # 3-sigma threshold
+    fig.add_hline(y=3.0, line=dict(color=COLORS["yellow"], width=1, dash="dash"),
+                  annotation_text="3σ threshold", annotation_font_color=COLORS["yellow"])
+
+    fig.update_layout(
+        template="plotly_dark", paper_bgcolor=COLORS["bg"], plot_bgcolor=COLORS["bg"],
+        title=dict(text="Sliding Window Sweep — σ vs Time Offset",
+                   font=dict(size=16, color=COLORS["text"])),
+        xaxis_title="Time Offset from GW Event (days)",
+        yaxis_title="σ Deviation",
+        font=dict(family="Inter, system-ui, sans-serif", color=COLORS["text"]),
+        height=600, margin=dict(l=60, r=30, t=60, b=40), hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(size=11)),
         xaxis=dict(gridcolor="#1e293b", zerolinecolor="#334155"),
         yaxis=dict(gridcolor="#1e293b", zerolinecolor="#334155"),
     )
@@ -215,6 +278,11 @@ def _build_pulsar_fig(event_name, psr_name, window, audit_results):
 # ---------------------------------------------------------------------------
 app = Dash(__name__)
 app.title = "Demiurge Trace — Simulation Hypothesis Auditor"
+
+TAB_STYLE = {"backgroundColor": COLORS["card"], "color": COLORS["text_dim"],
+             "border": f"1px solid {COLORS['card_border']}", "borderRadius": "8px 8px 0 0", "padding": "10px 20px"}
+TAB_SELECTED = {"backgroundColor": COLORS["accent"], "color": "white",
+                "border": "none", "borderRadius": "8px 8px 0 0", "padding": "10px 20px", "fontWeight": "600"}
 
 app.layout = html.Div(
     style={"backgroundColor": COLORS["bg"], "minHeight": "100vh",
@@ -300,27 +368,20 @@ app.layout = html.Div(
                                  colors={"border": COLORS["card_border"], "primary": COLORS["accent"], "background": COLORS["card"]},
                                  children=[
                                      dcc.Tab(label="Ensemble Overview", value="tab-ensemble",
-                                             style={"backgroundColor": COLORS["card"], "color": COLORS["text_dim"],
-                                                    "border": f"1px solid {COLORS['card_border']}", "borderRadius": "8px 8px 0 0", "padding": "10px 20px"},
-                                             selected_style={"backgroundColor": COLORS["accent"], "color": "white",
-                                                             "border": "none", "borderRadius": "8px 8px 0 0", "padding": "10px 20px", "fontWeight": "600"}),
+                                             style=TAB_STYLE, selected_style=TAB_SELECTED),
                                      dcc.Tab(label="Per-Pulsar Detail", value="tab-pulsar",
-                                             style={"backgroundColor": COLORS["card"], "color": COLORS["text_dim"],
-                                                    "border": f"1px solid {COLORS['card_border']}", "borderRadius": "8px 8px 0 0", "padding": "10px 20px"},
-                                             selected_style={"backgroundColor": COLORS["accent"], "color": "white",
-                                                             "border": "none", "borderRadius": "8px 8px 0 0", "padding": "10px 20px", "fontWeight": "600"}),
+                                             style=TAB_STYLE, selected_style=TAB_SELECTED),
+                                     dcc.Tab(label="Sliding Window", value="tab-sweep",
+                                             style=TAB_STYLE, selected_style=TAB_SELECTED),
                                      dcc.Tab(label="Results Table", value="tab-table",
-                                             style={"backgroundColor": COLORS["card"], "color": COLORS["text_dim"],
-                                                    "border": f"1px solid {COLORS['card_border']}", "borderRadius": "8px 8px 0 0", "padding": "10px 20px"},
-                                             selected_style={"backgroundColor": COLORS["accent"], "color": "white",
-                                                             "border": "none", "borderRadius": "8px 8px 0 0", "padding": "10px 20px", "fontWeight": "600"}),
+                                             style=TAB_STYLE, selected_style=TAB_SELECTED),
                                  ]),
-                        # Ensemble panel
+                        # Panel: Ensemble
                         html.Div(id="panel-ensemble",
                                  children=[dcc.Graph(id="ensemble-graph", figure=_empty_fig(),
                                                      config={"displayModeBar": True, "scrollZoom": True},
                                                      style={"borderRadius": "12px", "overflow": "hidden"})]),
-                        # Pulsar panel
+                        # Panel: Pulsar
                         html.Div(id="panel-pulsar", style={"display": "none"},
                                  children=[
                                      dcc.Dropdown(id="pulsar-select", options=[], value=None, clearable=False,
@@ -330,13 +391,35 @@ app.layout = html.Div(
                                                config={"displayModeBar": True, "scrollZoom": True},
                                                style={"borderRadius": "12px", "overflow": "hidden"}),
                                  ]),
-                        # Table panel
+                        # Panel: Sliding Window Sweep
+                        html.Div(id="panel-sweep", style={"display": "none"},
+                                 children=[
+                                     dcc.Graph(id="sweep-graph", figure=_empty_fig("Run an audit to generate sweep."),
+                                               config={"displayModeBar": True, "scrollZoom": True},
+                                               style={"borderRadius": "12px", "overflow": "hidden"}),
+                                     html.Div(id="sweep-info",
+                                              style={"marginTop": "16px", "padding": "16px",
+                                                     "backgroundColor": "rgba(99,102,241,0.08)",
+                                                     "borderRadius": "12px",
+                                                     "border": f"1px solid {COLORS['card_border']}"},
+                                              children=[
+                                                  html.P("The sliding window sweeps the analysis window across the "
+                                                         "entire observation timeline. Each line shows one pulsar's σ "
+                                                         "deviation as the window center moves. The red vertical line "
+                                                         "marks the GW event. If the event time is special, you'd see "
+                                                         "a coordinated spike at offset = 0 across multiple pulsars.",
+                                                         style={"color": COLORS["text_dim"], "fontSize": "13px",
+                                                                "margin": "0", "lineHeight": "1.6"}),
+                                              ]),
+                                 ]),
+                        # Panel: Results Table
                         html.Div(id="panel-table", style={"display": "none"},
                                  children=[
                                      dash_table.DataTable(
                                          id="results-table", data=[], page_size=15,
                                          columns=[{"name": c, "id": c} for c in
-                                                  ["Pulsar", "σ Deviation", "Window RMS (s)", "Baseline RMS (s)", "Artifact"]],
+                                                  ["Pulsar", "σ Deviation", "p-value", "Window RMS (s)",
+                                                   "Baseline RMS (s)", "Artifact"]],
                                          style_table={"overflowX": "auto", "borderRadius": "12px"},
                                          style_header={"backgroundColor": COLORS["card"], "color": COLORS["text"],
                                                        "fontWeight": "600", "fontSize": "13px", "textTransform": "uppercase",
@@ -357,26 +440,27 @@ app.layout = html.Div(
                 ),
             ],
         ),
-
-        # Only store a tiny config dict — NOT the raw data
         dcc.Store(id="audit-config", data=None),
     ],
 )
 
 
 # ---------------------------------------------------------------------------
-# Callbacks — all figure-building uses server-side cache directly
+# Callbacks
 # ---------------------------------------------------------------------------
 
 @callback(
     Output("panel-ensemble", "style"),
     Output("panel-pulsar", "style"),
+    Output("panel-sweep", "style"),
     Output("panel-table", "style"),
     Input("tabs", "value"),
 )
 def switch_tab(tab):
     s, h = {"display": "block"}, {"display": "none"}
-    return (s, h, h) if tab == "tab-ensemble" else (h, s, h) if tab == "tab-pulsar" else (h, h, s)
+    mapping = {"tab-ensemble": (s, h, h, h), "tab-pulsar": (h, s, h, h),
+               "tab-sweep": (h, h, s, h), "tab-table": (h, h, h, s)}
+    return mapping.get(tab, (s, h, h, h))
 
 
 @callback(
@@ -402,11 +486,12 @@ def run_audit_cb(n_clicks, event, window, sim_check):
     _load_strain(gw_time)
     results = _run_audit(gw_time, ensemble, window)
 
-    # Store results server-side
+    # Run sliding window sweep
+    _run_sweep(gw_time, ensemble, window)
+
     config_key = f"{event}_{window}_{sim}"
     _AUDIT_RESULTS[config_key] = results
 
-    # Only pass a tiny config dict to the browser
     config = {
         "event": event,
         "window": window,
@@ -417,19 +502,19 @@ def run_audit_cb(n_clicks, event, window, sim_check):
         "n_detectors_above_1s": results["n_detectors_above_1s"],
         "is_ensemble_artifact": results["is_ensemble_artifact"],
         "pulsar_names": list(ensemble.keys()),
-        # Small per-pulsar summary (just scalars, not arrays)
         "pulsar_summaries": {
             psr: {
                 "sigma": results["pulsar_results"].get(psr, {}).get("sigma", 0),
                 "window_rms": results["pulsar_results"].get(psr, {}).get("window_rms", 0),
                 "baseline_rms": results["pulsar_results"].get(psr, {}).get("baseline_rms", 0),
                 "is_artifact": results["pulsar_results"].get(psr, {}).get("is_artifact", False),
+                "p_value": results["pulsar_results"].get(psr, {}).get("p_value"),
             }
             for psr in ensemble.keys()
         },
     }
 
-    return config, f"✅ Loaded {len(ensemble)} pulsars."
+    return config, f"✅ Loaded {len(ensemble)} pulsars. Monte Carlo + sweep complete."
 
 
 @callback(
@@ -499,6 +584,13 @@ def update_psr_chart(psr_name, cfg):
     return _build_pulsar_fig(cfg["event"], psr_name, cfg["window"], results)
 
 
+@callback(Output("sweep-graph", "figure"), Input("audit-config", "data"))
+def update_sweep(cfg):
+    if cfg is None:
+        return _empty_fig("Run an audit to generate sweep.")
+    return _build_sweep_fig(cfg["event"], cfg["window"])
+
+
 @callback(
     Output("results-table", "data"),
     Output("verdict-banner", "children"),
@@ -510,9 +602,13 @@ def update_table(cfg):
 
     rows = []
     for psr, s in cfg["pulsar_summaries"].items():
+        p_val = s.get("p_value")
+        p_str = f"{p_val:.4f}" if p_val is not None else "—"
+        p_color = ""
         rows.append({
             "Pulsar": psr,
             "σ Deviation": f"{s['sigma']:.4f}",
+            "p-value": p_str,
             "Window RMS (s)": f"{s['window_rms']:.2e}",
             "Baseline RMS (s)": f"{s['baseline_rms']:.2e}",
             "Artifact": "🚨 YES" if s["is_artifact"] else "✓ No",
@@ -528,7 +624,7 @@ def update_table(cfg):
                        "margin": "0 0 8px 0", "fontSize": "18px"}),
             html.P(
                 f"Mean Ensemble σ = {cfg['ensemble_sigma']:.4f}  |  {cfg['n_pulsars_in_window']} pulsars  |  "
-                f"{cfg['n_detectors_above_1s']} above 1σ  |  Sim: {'ON' if cfg['sim'] else 'OFF'}",
+                f"{cfg['n_detectors_above_1s']} above 1σ  |  Sim: {'ON' if cfg['sim'] else 'OFF'}  |  Monte Carlo: 10,000 iterations",
                 style={"color": COLORS["text_dim"], "margin": "0", "fontSize": "14px",
                        "fontFamily": "'JetBrains Mono', monospace"}),
         ],
@@ -537,7 +633,7 @@ def update_table(cfg):
 
 
 # ---------------------------------------------------------------------------
-# Pre-load data and start server
+# Pre-load and start
 # ---------------------------------------------------------------------------
 def _preload():
     t0 = time.time()

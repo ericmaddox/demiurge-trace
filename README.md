@@ -207,12 +207,22 @@ After clicking **▶ Run Audit**, the dashboard populates three tabs:
 | **Title bar stats** | `σ` = how many standard deviations the window RMS deviates from the baseline RMS. `Window RMS` = root-mean-square of residuals inside the window. `Baseline RMS` = the same metric for all data outside the window. |
 | **What to look for** | If σ ≈ 0, the window residuals are indistinguishable from normal noise — no artifact. If σ > 3, the window shows statistically significant excess timing variation that warrants investigation. |
 
-#### Tab 3 — Results Table
+#### Tab 3 — Sliding Window Sweep
+
+| Element | What it shows |
+|:---|:---|
+| **Colored lines** | Each line is one pulsar's σ deviation as the analysis window slides across the entire observation timeline. The x-axis is time offset from the GW event in days. |
+| **Red vertical line** | Marks the exact GW event time (offset = 0). |
+| **Yellow dashed line** | The 3σ threshold. Any spike above this line would be statistically significant. |
+| **What to look for** | If no pulsar's line spikes at offset = 0, the GW event time is not special — the residuals there are no different from any other random time in the dataset. A coordinated spike at offset = 0 across multiple pulsars would suggest a simulation artifact. |
+
+#### Tab 4 — Results Table
 
 | Column | Meaning |
 |:---|:---|
 | **Pulsar** | NANOGrav pulsar designation (J-name). |
 | **σ Deviation** | Number of standard deviations between window RMS and baseline RMS. Values near 0 = normal; > 3 = anomalous. |
+| **p-value** | Monte Carlo significance (10,000 permutation trials). The fraction of random residual shuffles that produce a sigma ≥ the observed value. Low p-values (< 0.05) suggest the deviation is unlikely due to chance. |
 | **Window RMS** | Root-mean-square of timing residuals inside the analysis window (seconds). |
 | **Baseline RMS** | Root-mean-square of residuals outside the window (seconds). |
 | **Artifact** | ✓ No = consistent with real physics. 🚨 YES = anomalous deviation detected. |
@@ -284,6 +294,14 @@ The auditor computes timing residual RMS within a configurable window around eac
 - The ensemble sigma exceeds **3.0σ**, or
 - Three or more pulsars simultaneously exceed **1.0σ** (in arrays of ≥ 5 pulsars)
 
+### Monte Carlo Significance Testing
+
+Each pulsar's observed sigma is validated against **10,000 random permutation trials**. Residuals are shuffled (breaking the time association), and the window sigma is recomputed for each trial. The **p-value** is the fraction of trials producing a sigma ≥ the observed value — providing a rigorous, distribution-free measure of statistical significance.
+
+### Sliding Window Sweep
+
+The analysis window is swept across the entire observation timeline at 200 evenly-spaced positions. This produces a sigma-vs-offset curve for each pulsar. If the GW event time is unremarkable, the sigma at offset = 0 should be indistinguishable from the background — confirming that the event coincidence is not special.
+
 ### Pulsar Ensemble
 
 | Pulsar | Type | Notes |
@@ -305,10 +323,11 @@ The auditor computes timing residual RMS within a configurable window around eac
 
 Contributions are welcome! Here are some areas where help is needed:
 
-- **Multi-event sweep** — Automate auditing across the full GWOSC catalog
-- **Monte Carlo significance testing** — Bootstrap p-values for stronger statistics
+- **Multi-event sweep** — Automate auditing across the full GWOSC catalog (~90 events)
+- **Null distribution test** — Audit at random GPS times to build a baseline sigma distribution
 - **Cross-correlation analysis** — Pairwise pulsar residual correlations (Hellings-Downs style)
-- **Interactive dashboard** — Plotly/Streamlit visualization
+- **Sky map visualization** — Mollweide projection color-coded by sigma
+- **Multi-detector strain** — Add L1 (Livingston) and V1 (Virgo) alongside H1
 - **Additional PTA data** — EPTA, PPTA, and IPTA integration
 
 To contribute:
@@ -330,3 +349,28 @@ This project is currently unlicensed. See [choosealicense.com](https://chooseali
 ## Disclaimer
 
 This project is an experimental tool for testing the limits of astrophysical data in the context of the Simulation Hypothesis. It is **not** intended as a proof of simulation, but as a rigorous statistical audit of physical consistency using real observational data.
+
+---
+
+## Changelog
+
+### v0.3.0 — 2026-02-14
+
+- **Monte Carlo significance testing** — 10,000-iteration permutation test per pulsar with p-values
+- **Sliding window sweep** — New dashboard tab showing σ vs time-offset across the full timeline
+- **p-value column** added to Results Table for statistical rigor
+
+### v0.2.0 — 2026-02-14
+
+- **Interactive Plotly Dash dashboard** with 4 tabs (Ensemble, Per-Pulsar, Sliding Window, Results)
+- **Fixed missing pulsar J1857+0943** — alias mapping for NANOGrav B-name `B1857+09`
+- **Server-side data architecture** — eliminated JSON serialization bottleneck
+- **Auto-open browser** on dashboard startup
+
+### v0.1.0 — 2026-02-08
+
+- Initial release with CLI-based auditor
+- NANOGrav 15-year data acquisition (`setup_array.py`)
+- LIGO GWOSC strain data integration
+- 9-pulsar ensemble analysis for GW150914 and GW170817
+- Professional README with badges and documentation
