@@ -8,6 +8,8 @@ Launch with: python dashboard.py
 import os
 import sys
 import time
+import webbrowser
+import threading
 import numpy as np
 from dash import Dash, html, dcc, callback, Input, Output, State, dash_table, no_update
 import plotly.graph_objects as go
@@ -560,4 +562,5 @@ if __name__ == "__main__":
     print("\n  Pre-loading data (this may take a minute)...\n")
     _preload()
     print("  Dashboard ready at http://127.0.0.1:8050\n")
+    threading.Timer(1.0, lambda: webbrowser.open("http://127.0.0.1:8050")).start()
     app.run(debug=False, host="127.0.0.1", port=8050)
